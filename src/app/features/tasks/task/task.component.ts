@@ -60,6 +60,7 @@ import { KeyboardConfig } from '../../config/keyboard-config.model';
 import { DialogScheduleTaskComponent } from '../../planner/dialog-schedule-task/dialog-schedule-task.component';
 import { DialogDeadlineComponent } from '../dialog-deadline/dialog-deadline.component';
 import { isDeadlineOverdue as isDeadlineOverdueFn } from '../util/is-deadline-overdue';
+import { isScheduleOverdue } from '../util/is-schedule-overdue';
 import { TaskContextMenuComponent } from '../task-context-menu/task-context-menu.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ICAL_TYPE } from '../../issue/issue.const';
@@ -182,22 +183,10 @@ export class TaskComponent implements OnDestroy, AfterViewInit {
     () => !!(this.task().repeatCfgId && this._dateService.isToday(this.task().created)),
   );
   isOverdue = computed(() => {
-    const t = this.task();
-    const todayStr = this.globalTrackingIntervalService.todayDateStr();
-    return (
-      !t.isDone &&
-      ((t.dueWithTime &&
-        !this._dateService.isToday(t.dueWithTime) &&
-        t.dueWithTime < Date.now()) ||
-        // Note: String comparison works correctly here because dueDay is in YYYY-MM-DD format
-        // which is lexicographically sortable. This avoids timezone conversion issues that occur
-        // when creating Date objects from date strings.
-        // Guard: only compare if dueDay is a valid YYYY-MM-DD string to avoid corrupted data
-        // producing false overdue results (see #6908)
-        (t.dueDay &&
-          isDBDateStr(t.dueDay) &&
-          t.dueDay !== todayStr &&
-          t.dueDay < todayStr))
+    return isScheduleOverdue(
+      this.task(),
+      this.globalTrackingIntervalService.todayDateStr(),
+      (timestamp) => this._dateService.isToday(timestamp),
     );
   });
   isScheduledToday = computed(() => {
