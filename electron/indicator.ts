@@ -92,7 +92,7 @@ export const initIndicator = ({
   app: App;
   ICONS_FOLDER: string;
   forceDarkTray: boolean;
-}): Tray => {
+}): Tray | undefined => {
   indicatorConfig = {
     showApp,
     quitApp,
@@ -116,16 +116,9 @@ export const initIndicator = ({
   return ensureIndicator();
 };
 
-export const ensureIndicator = ({
-  refresh = false,
-}: { refresh?: boolean } = {}): Tray => {
+export const ensureIndicator = (): Tray | undefined => {
   if (!indicatorConfig) {
-    throw new Error('Indicator not initialized');
-  }
-
-  if (refresh && tray) {
-    tray.destroy();
-    tray = undefined;
+    return undefined;
   }
 
   if (tray) {
@@ -170,8 +163,7 @@ function initAppListeners(app: App): void {
   _isAppListenersInitialized = true;
   app.on('before-quit', () => {
     if (tray) {
-      tray.destroy();
-      tray = undefined;
+      destroyTray();
     }
   });
 }
@@ -451,6 +443,12 @@ const syncTray = (tr: Tray): void => {
   }
 };
 
+const destroyTray = (): void => {
+  tray?.destroy();
+  tray = undefined;
+  curIco = undefined;
+};
+
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 function createIndicatorMessage(
   task: TaskCopy,
@@ -555,7 +553,7 @@ function getRunningIconPath(progress?: number): string {
   return DIR + `running${suf}.png`;
 }
 
-let curIco: string;
+let curIco: string | undefined;
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 function setTrayIcon(tr: Tray, icoPath: string): void {
