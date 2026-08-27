@@ -250,6 +250,7 @@
       },
       "CONTEXT_MENU": {
         "CREATE_TASK": "Create as task",
+        "CREATE_TASK_NO_LINK": "Create as task (no calendar link)",
         "OPEN_IN_CALENDAR": "Open in calendar",
         "RESCHEDULE": "Reschedule",
         "DELETE_EVENT": "Delete event"

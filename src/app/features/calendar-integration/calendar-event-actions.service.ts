@@ -16,6 +16,7 @@ import { HiddenCalendarEventsService } from './hidden-calendar-events.service';
 import { SnackService } from '../../core/snack/snack.service';
 import { T } from '../../t.const';
 import { ScheduleFromCalendarEvent } from '../schedule/schedule.model';
+import { TaskService } from '../tasks/task.service';
 import { Log } from '../../core/log';
 import { IS_ELECTRON } from '../../app.constants';
 import { DialogScheduleTaskComponent } from '../planner/dialog-schedule-task/dialog-schedule-task.component';
@@ -41,6 +42,7 @@ export class CalendarEventActionsService {
   private _calendarIntegrationService = inject(CalendarIntegrationService);
   private _hiddenEventsService = inject(HiddenCalendarEventsService);
   private _snackService = inject(SnackService);
+  private _taskService = inject(TaskService);
 
   isPluginEvent(calEv: ScheduleFromCalendarEvent): boolean {
     return isPluginIssueProvider(calEv.issueProviderKey as IssueProviderKey);
@@ -89,6 +91,24 @@ export class CalendarEventActionsService {
       issueProviderKey: calEv.issueProviderKey as IssueProviderKey,
       isForceDefaultProject: true,
     });
+  }
+
+  /**
+   * Materializes a calendar event as a PLAIN task: no issueId/issueProviderId/
+   * issueType and no dueWithTime. Both permanently disqualify a task from
+   * becoming a sub-task (see canConvertTaskToSubTask), which is the whole point
+   * of this action (#9661). The event itself stays in the calendar list (no
+   * skipCalendarEvent), since nothing links the two.
+   */
+  createAsPlainTask(calEv: ScheduleFromCalendarEvent): void {
+    this._taskService.add(
+      calEv.title,
+      false,
+      { notes: calEv.description || '', timeEstimate: calEv.duration },
+      false,
+      // Event titles are external content — don't parse #tag/@date/+project out of them.
+      true,
+    );
   }
 
   hideForever(calEv: ScheduleFromCalendarEvent): void {

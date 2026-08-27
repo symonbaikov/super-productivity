@@ -76,6 +76,10 @@ export class PlannerCalendarEventComponent {
     this._calEventActions.createAsTask(this.calendarEvent());
   }
 
+  createAsPlainTask(): void {
+    this._calEventActions.createAsPlainTask(this.calendarEvent());
+  }
+
   async reschedule(): Promise<void> {
     await this._calEventActions.reschedule(this.calendarEvent());
   }

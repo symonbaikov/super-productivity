@@ -437,6 +437,12 @@ export class ScheduleEventComponent implements AfterViewInit, OnDestroy {
     this._calEventActions.createAsTask(data);
   }
 
+  createCalendarEventAsPlainTask(): void {
+    const evt = this.se();
+    if (evt.type !== SVEType.CalendarEvent) return;
+    this._calEventActions.createAsPlainTask(evt.data as ScheduleFromCalendarEvent);
+  }
+
   async rescheduleCalendarEvent(): Promise<void> {
     const evt = this.se();
     if (evt.type !== SVEType.CalendarEvent) return;

@@ -49,6 +49,13 @@
   </button>
   <button
     mat-menu-item
+    (click)="createAsPlainTask()"
+  >
+    <mat-icon>playlist_add</mat-icon>
+    {{ T.F.CALENDARS.CONTEXT_MENU.CREATE_TASK_NO_LINK | translate }}
+  </button>
+  <button
+    mat-menu-item
     (click)="hide()"
   >
     <mat-icon>visibility_off</mat-icon>

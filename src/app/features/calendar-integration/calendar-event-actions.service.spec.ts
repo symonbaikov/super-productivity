@@ -9,6 +9,7 @@ import { IssueSyncAdapterResolverService } from '../issue/two-way-sync/issue-syn
 import { CalendarIntegrationService } from './calendar-integration.service';
 import { HiddenCalendarEventsService } from './hidden-calendar-events.service';
 import { SnackService } from '../../core/snack/snack.service';
+import { TaskService } from '../tasks/task.service';
 import { IssueSyncAdapter } from '../issue/two-way-sync/issue-sync-adapter.interface';
 import { ScheduleFromCalendarEvent } from '../schedule/schedule.model';
 import { IssueProviderPluginType } from '../issue/issue.model';
@@ -23,6 +24,7 @@ describe('CalendarEventActionsService', () => {
   let adapterResolver: jasmine.SpyObj<IssueSyncAdapterResolverService>;
   let calendarIntegrationService: jasmine.SpyObj<CalendarIntegrationService>;
   let snackService: jasmine.SpyObj<SnackService>;
+  let taskService: jasmine.SpyObj<TaskService>;
   let adapter: jasmine.SpyObj<IssueSyncAdapter<unknown>>;
 
   const providerCfg: IssueProviderPluginType = {
@@ -76,6 +78,7 @@ describe('CalendarEventActionsService', () => {
       ['triggerRefresh'],
     );
     snackService = jasmine.createSpyObj<SnackService>('SnackService', ['open']);
+    taskService = jasmine.createSpyObj<TaskService>('TaskService', ['add']);
 
     TestBed.configureTestingModule({
       providers: [
@@ -88,10 +91,32 @@ describe('CalendarEventActionsService', () => {
         { provide: CalendarIntegrationService, useValue: calendarIntegrationService },
         { provide: HiddenCalendarEventsService, useValue: {} },
         { provide: SnackService, useValue: snackService },
+        { provide: TaskService, useValue: taskService },
       ],
     });
 
     service = TestBed.inject(CalendarEventActionsService);
+  });
+
+  it('creates a plain, unlinked task from a calendar event', () => {
+    service.createAsPlainTask(createCalendarEvent({ description: 'Agenda' }));
+
+    expect(taskService.add).toHaveBeenCalledWith(
+      'Meeting',
+      false,
+      { notes: 'Agenda', timeEstimate: 30 * 60 * 1000 },
+      false,
+      true,
+    );
+    // No issue link and no dueWithTime — both would block sub-task conversion.
+    const additional = taskService.add.calls.mostRecent().args[2] as Record<
+      string,
+      unknown
+    >;
+    expect(additional['issueId']).toBeUndefined();
+    expect(additional['issueProviderId']).toBeUndefined();
+    expect(additional['issueType']).toBeUndefined();
+    expect(additional['dueWithTime']).toBeUndefined();
   });
 
   it('returns false without loading provider config when no adapter exists', async () => {
