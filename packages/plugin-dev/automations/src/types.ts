@@ -41,11 +41,15 @@ export type ActionType =
   | 'moveToProject'
   | 'displaySnack'
   | 'displayDialog'
-  | 'webhook';
+  | 'webhook'
+  | 'setDueDate'
+  | 'setDeadline';
 
 export interface Action {
   type: ActionType;
-  value: string; // For createTask: title; For addTag/moveToProject: tag/project identifier; For deleteTask: unused
+  value: string; // For createTask: title; For addTag/moveToProject: tag/project identifier;
+  // For setDueDate/setDeadline: "YYYY-MM-DD" or a relative offset ("+3d");
+  // For deleteTask: unused
 }
 
 export interface AutomationRule {

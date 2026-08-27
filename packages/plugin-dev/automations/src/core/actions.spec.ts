@@ -8,6 +8,8 @@ import {
   ActionDisplaySnack,
   ActionDisplayDialog,
   ActionWebhook,
+  ActionSetDueDate,
+  ActionSetDeadline,
 } from './actions';
 import { AutomationContext } from './definitions';
 import { TaskEvent } from '../types';
@@ -302,6 +304,75 @@ describe('Actions', () => {
       (global.fetch as any).mockRejectedValue(new Error('Network Error'));
       await ActionWebhook.execute(mockContext, {} as TaskEvent, 'http://example.com');
       expect(mockPlugin.log.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('ActionSetDueDate / ActionSetDeadline', () => {
+    const created = new Date(2026, 0, 31, 9).getTime();
+
+    it('resolves a relative offset from the task creation date', async () => {
+      const event = { task: { id: 'task1', created } } as unknown as TaskEvent;
+
+      await ActionSetDueDate.execute(mockContext, event, '+3d');
+
+      expect(mockPlugin.updateTask).toHaveBeenCalledWith('task1', {
+        dueDay: '2026-02-03',
+      });
+    });
+
+    it('accepts an absolute date for the deadline', async () => {
+      const event = { task: { id: 'task1', created } } as unknown as TaskEvent;
+
+      await ActionSetDeadline.execute(mockContext, event, '2026-04-01');
+
+      expect(mockPlugin.updateTask).toHaveBeenCalledWith('task1', {
+        deadlineDay: '2026-04-01',
+      });
+    });
+
+    it('warns and does nothing for an unparsable value', async () => {
+      const event = { task: { id: 'task1', created } } as unknown as TaskEvent;
+
+      await ActionSetDueDate.execute(mockContext, event, 'tomorrow');
+
+      expect(mockPlugin.updateTask).not.toHaveBeenCalled();
+      expect(mockPlugin.log.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Invalid date value'),
+      );
+    });
+
+    it('leaves tasks that carry a host-owned reminder alone', async () => {
+      await ActionSetDueDate.execute(
+        mockContext,
+        { task: { id: 'task1', created, dueWithTime: created } } as unknown as TaskEvent,
+        '+1d',
+      );
+      await ActionSetDeadline.execute(
+        mockContext,
+        { task: { id: 'task1', created, deadlineWithTime: created } } as unknown as TaskEvent,
+        '+1d',
+      );
+
+      expect(mockPlugin.updateTask).not.toHaveBeenCalled();
+    });
+
+    it('skips the update when the day is already set', async () => {
+      const event = {
+        task: { id: 'task1', created, dueDay: '2026-02-03' },
+      } as unknown as TaskEvent;
+
+      await ActionSetDueDate.execute(mockContext, event, '+3d');
+
+      expect(mockPlugin.updateTask).not.toHaveBeenCalled();
+    });
+
+    it('warns without task context', async () => {
+      await ActionSetDueDate.execute(mockContext, { task: undefined } as TaskEvent, '+1d');
+
+      expect(mockPlugin.log.warn).toHaveBeenCalledWith(
+        expect.stringContaining('without task context'),
+      );
+      expect(mockPlugin.updateTask).not.toHaveBeenCalled();
     });
   });
 });

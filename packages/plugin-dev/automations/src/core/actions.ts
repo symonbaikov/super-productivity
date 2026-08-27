@@ -1,4 +1,5 @@
 import { AutomationContext, IAutomationAction } from './definitions';
+import { resolveDateValue } from './date-value';
 
 const resolveTagId = async (ctx: AutomationContext, value: string): Promise<string | null> => {
   const tag = (await ctx.dataCache.getTags()).find((t) => t.id === value || t.title === value);
@@ -175,5 +176,74 @@ export const ActionWebhook: IAutomationAction = {
     } catch (e) {
       ctx.plugin.log.error(`[Automation] Webhook failed: ${e}`);
     }
+  },
+};
+
+const DATE_VALUE_HINT =
+  'Use an absolute "YYYY-MM-DD" or an offset from the task creation date like "+3d", "+2w", "+1m", "+1y".';
+
+const resolveDayOrWarn = (
+  ctx: AutomationContext,
+  createdTs: number,
+  value?: string,
+): string | null => {
+  // Offsets are counted from task creation (as requested in #9700), not from
+  // "now", so re-running a rule on the same task always yields the same day.
+  const day = value ? resolveDateValue(value, new Date(createdTs)) : null;
+  if (!day) {
+    ctx.plugin.log.warn(`[Automation] Invalid date value: "${value}". ${DATE_VALUE_HINT}`);
+  }
+  return day;
+};
+
+export const ActionSetDueDate: IAutomationAction = {
+  id: 'setDueDate',
+  name: 'Set Due Date',
+  description: `Schedules the task for a day. ${DATE_VALUE_HINT}`,
+  execute: async (ctx, event, value) => {
+    if (!event.task) {
+      ctx.plugin.log.warn('[Automation] Cannot set a due date without task context.');
+      return;
+    }
+    // A task scheduled to an exact time owns a reminder that only the host can
+    // clear; overwriting dueWithTime from here would leave that reminder firing
+    // for a date the task no longer has. Leave those tasks alone instead.
+    if (event.task.dueWithTime) {
+      ctx.plugin.log.warn(
+        '[Automation] Skipped setting a due date: task is scheduled with a time.',
+      );
+      return;
+    }
+    const dueDay = resolveDayOrWarn(ctx, event.task.created, value);
+    if (!dueDay) return;
+    if (event.task.dueDay === dueDay) return;
+
+    await ctx.plugin.updateTask(event.task.id, { dueDay });
+    ctx.plugin.log.info(`[Automation] Action: Set due date to ${dueDay}`);
+  },
+};
+
+export const ActionSetDeadline: IAutomationAction = {
+  id: 'setDeadline',
+  name: 'Set Deadline',
+  description: `Sets the task deadline. ${DATE_VALUE_HINT}`,
+  execute: async (ctx, event, value) => {
+    if (!event.task) {
+      ctx.plugin.log.warn('[Automation] Cannot set a deadline without task context.');
+      return;
+    }
+    // Same reasoning as setDueDate: a deadline with a time carries its own reminder.
+    if (event.task.deadlineWithTime) {
+      ctx.plugin.log.warn(
+        '[Automation] Skipped setting a deadline: task has a deadline with a time.',
+      );
+      return;
+    }
+    const deadlineDay = resolveDayOrWarn(ctx, event.task.created, value);
+    if (!deadlineDay) return;
+    if (event.task.deadlineDay === deadlineDay) return;
+
+    await ctx.plugin.updateTask(event.task.id, { deadlineDay });
+    ctx.plugin.log.info(`[Automation] Action: Set deadline to ${deadlineDay}`);
   },
 };

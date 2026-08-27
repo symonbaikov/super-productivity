@@ -72,6 +72,8 @@ export function RuleEditor(props: RuleEditorProps) {
       'displaySnack',
       'displayDialog',
       'webhook',
+      'setDueDate',
+      'setDeadline',
     ];
   };
 

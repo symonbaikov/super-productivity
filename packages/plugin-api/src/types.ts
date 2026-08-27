@@ -299,6 +299,10 @@ export interface Task {
   remindAt?: number | null;
   dueDay?: string | null;
   dueWithTime?: number | null;
+  /** Deadline date (YYYY-MM-DD). Mutually exclusive with deadlineWithTime. */
+  deadlineDay?: string | null;
+  /** Deadline as Unix timestamp (ms). When set, deadlineDay is cleared. */
+  deadlineWithTime?: number | null;
   repeatCfgId?: string | null;
 
   // Issue tracking fields (optional)

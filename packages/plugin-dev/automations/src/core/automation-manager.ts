@@ -66,6 +66,8 @@ export class AutomationManager {
     globalRegistry.registerAction(Actions.ActionDisplaySnack);
     globalRegistry.registerAction(Actions.ActionDisplayDialog);
     globalRegistry.registerAction(Actions.ActionWebhook);
+    globalRegistry.registerAction(Actions.ActionSetDueDate);
+    globalRegistry.registerAction(Actions.ActionSetDeadline);
   }
 
   private initTimeCheck() {

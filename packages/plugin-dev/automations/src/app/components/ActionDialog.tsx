@@ -23,6 +23,8 @@ export function ActionDialog(props: ActionDialogProps) {
     'displaySnack',
     'displayDialog',
     'webhook',
+    'setDueDate',
+    'setDeadline',
   ];
   const availableTypes = () =>
     props.allowedTypes ? allTypes.filter((t) => props.allowedTypes!.includes(t)) : allTypes;
@@ -55,6 +57,9 @@ export function ActionDialog(props: ActionDialogProps) {
         return 'e.g. "Please remember to..."';
       case 'webhook':
         return 'e.g. "https://hooks.slack.com/..."';
+      case 'setDueDate':
+      case 'setDeadline':
+        return 'e.g. "2026-08-28" or "+3d" (3 days after task creation)';
       default:
         return '';
     }

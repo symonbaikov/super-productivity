@@ -44,6 +44,8 @@ const AUTOMATION_ACTION_TYPES = [
   'displaySnack',
   'displayDialog',
   'webhook',
+  'setDueDate',
+  'setDeadline',
 ] as const satisfies readonly ActionType[];
 const _exhaustiveActions: _AssertEq<ActionType, (typeof AUTOMATION_ACTION_TYPES)[number]> = true;
 
