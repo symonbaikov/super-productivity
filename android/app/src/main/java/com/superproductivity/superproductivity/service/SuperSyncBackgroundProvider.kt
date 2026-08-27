@@ -118,7 +118,10 @@ class SuperSyncBackgroundProvider(
             .url(url)
             .header("Authorization", "Bearer $accessToken")
             .header("Accept", "application/json")
-            .header("Accept-Encoding", "gzip")
+            // Deliberately NO explicit Accept-Encoding: OkHttp adds "gzip" itself and
+            // then transparently gunzips the response. Setting the header by hand makes
+            // the caller responsible for decoding, so a gzipping proxy/CDN in front of
+            // the server would hand us raw gzip bytes and parseResponse() would throw (#9684).
             .get()
             .build()
 
@@ -133,7 +136,9 @@ class SuperSyncBackgroundProvider(
                 parseResponse(body)
             }
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to fetch ops from $baseUrl", e)
+            // Type only, no message/stack: JSONException embeds the response body, which
+            // is user content and must never reach the log (CLAUDE.md logging rule).
+            Log.w(TAG, "Failed to fetch ops: ${e.javaClass.simpleName}")
             null
         }
     }
