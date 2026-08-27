@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import {
   MatAutocomplete,
+  MatAutocompleteActivatedEvent,
   MatAutocompleteSelectedEvent,
   MatAutocompleteTrigger,
   MatOption,
@@ -34,6 +35,7 @@ import { TagComponent } from '../tag/tag.component';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TODAY_TAG } from '../tag.const';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { resolveChipSuggestion } from '../../../util/resolve-chip-suggestion';
 
 interface Suggestion {
   id: string;
@@ -86,6 +88,7 @@ export class TagEditComponent {
   readonly matAutocomplete = viewChild<MatAutocomplete>('autoElRef');
 
   inputVal = signal<string>('');
+  private _activeSuggestionId: string | null = null;
   tagSuggestions = computed(() =>
     this.isShowMyDayTag()
       ? this._tagService.tagsInTreeOrder()
@@ -138,19 +141,24 @@ export class TagEditComponent {
       throw new Error('Auto complete undefined');
     }
 
-    if (!matAutocomplete.isOpen) {
-      const inp = event.input;
-      const value = event.value;
-
-      // Add our fruit
-      if ((value || '').trim()) {
-        this._addByTitle(value.trim());
-      }
-
-      inp.value = '';
-
-      this.inputCtrl.setValue(null);
+    // while the panel is open the autocomplete itself commits the selection
+    if (matAutocomplete.isOpen) {
+      return;
     }
+
+    const rawValue = event.value || '';
+    if (rawValue.trim()) {
+      this._addByTitle(rawValue);
+    }
+
+    event.input.value = '';
+    this.inputCtrl.setValue(null);
+    this._activeSuggestionId = null;
+  }
+
+  onOptionActivated(event: MatAutocompleteActivatedEvent): void {
+    const val: unknown = event.option?.value;
+    this._activeSuggestionId = typeof val === 'string' ? val : null;
   }
 
   onKeydown(event: KeyboardEvent): void {
@@ -171,6 +179,7 @@ export class TagEditComponent {
   }
 
   selected(event: MatAutocompleteSelectedEvent): void {
+    this._activeSuggestionId = null;
     this._add(event.option.value);
     const inputEl = this.inputEl();
     if (inputEl) {
@@ -187,10 +196,6 @@ export class TagEditComponent {
     }
   }
 
-  private _getExistingSuggestionByTitle(v: string): Suggestion | undefined {
-    return this.tagSuggestions().find((suggestion) => suggestion.title === v);
-  }
-
   private _add(id: string): void {
     // prevent double items
     if (!this.tagIds().includes(id)) {
@@ -198,14 +203,20 @@ export class TagEditComponent {
     }
   }
 
-  private _addByTitle(v: string): void {
-    const existing = this._getExistingSuggestionByTitle(v);
-    if (existing) {
-      if (!this.allExcludedTagIds().includes(existing.id)) {
-        this._add(existing.id);
+  private _addByTitle(rawValue: string): void {
+    const value = rawValue.trim();
+    const match = resolveChipSuggestion(
+      value,
+      this.tagSuggestions(),
+      this.filteredSuggestions(),
+      this._activeSuggestionId,
+    );
+    if (match) {
+      if (!this.allExcludedTagIds().includes(match.id)) {
+        this._add(match.id);
       }
     } else {
-      this._createNewTag(v);
+      this._createNewTag(value);
     }
   }
 

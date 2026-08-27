@@ -30,6 +30,8 @@
 </mat-chip-grid>
 <mat-autocomplete
   #autoElRef="matAutocomplete"
+  [autoActiveFirstOption]="!!inputVal()"
+  (optionActivated)="onOptionActivated($event)"
   (optionSelected)="selected($event)"
 >
   @for (suggestion of filteredSuggestions(); track suggestion.id) {
