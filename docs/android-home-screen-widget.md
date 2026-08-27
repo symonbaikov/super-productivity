@@ -41,6 +41,9 @@ until the app writes a current snapshot.
 ## Deliberate limitations
 
 - No task creation, undo, or per-task deep link.
+- Tasks only. A proposed habit mode is mapped in
+  [Android widget habit mode](plans/2026-08-28-android-widget-habit-mode.md)
+  (proposal, not current behavior).
 - Native widget chrome is English-only and uses fixed styling.
 - At most 20 tasks are rendered.
 - Cross-client freshness while the app is dead requires a separate background
