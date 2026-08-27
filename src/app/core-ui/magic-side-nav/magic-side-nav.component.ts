@@ -33,13 +33,20 @@ import { Subscription } from 'rxjs';
 import { ScheduleExternalDragService } from '../../features/schedule/schedule-week/schedule-external-drag.service';
 import { Log } from '../../core/log';
 import { TODAY_TAG } from '../../features/tag/tag.const';
-import { DragDropRegistry } from '@angular/cdk/drag-drop';
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDropList,
+  DragDropRegistry,
+} from '@angular/cdk/drag-drop';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { WorkContextType } from '../../features/work-context/work-context.model';
 import { HISTORY_STATE } from '../../app.constants';
 import { SwipeDirective } from '../../ui/swipe-gesture/swipe.directive';
 import { DataInitStateService } from '../../core/data-init/data-init-state.service';
+import { NgTemplateOutlet } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
+import { dragDelayForTouch } from '../../util/input-intent';
 import { T } from '../../t.const';
 
 // 56px = 24px icon + 16px (var(--s2)) padding on each side, so the left-aligned
@@ -61,6 +68,9 @@ const INITIAL_ENTER_ANIMATION_DURATION_MS = 425;
     SwipeDirective,
     CdkTrapFocus,
     TranslatePipe,
+    NgTemplateOutlet,
+    CdkDropList,
+    CdkDrag,
   ],
   templateUrl: './magic-side-nav.component.html',
   styleUrl: './magic-side-nav.component.scss',
@@ -97,6 +107,9 @@ export class MagicSideNavComponent implements OnDestroy, AfterViewInit {
   );
   readonly WorkContextType = WorkContextType;
   readonly T = T;
+  // Ids of the fixed nav items above the project list - only those are drag-reorderable (#9653)
+  readonly fixedNavItemIds = this._sideNavConfigService.fixedNavItemIds;
+  readonly dragDelayForTouch = dragDelayForTouch;
   readonly isMobile = this._layoutService.isXs;
   private readonly _initialState = this._getInitialState();
 
@@ -379,6 +392,13 @@ export class MagicSideNavComponent implements OnDestroy, AfterViewInit {
     }
     // For other groups, default to expanded (or extend service to manage all groups)
     return true;
+  }
+
+  onNavItemDrop(event: CdkDragDrop<unknown>): void {
+    this._sideNavConfigService.reorderFixedNavItems(
+      event.previousIndex,
+      event.currentIndex,
+    );
   }
 
   onItemClick(item: NavItem): void {

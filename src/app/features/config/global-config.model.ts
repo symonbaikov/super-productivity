@@ -42,6 +42,12 @@ export type MiscConfig = Readonly<{
   isVerticalActionBar?: boolean;
   // optional because it was added later
   isDisableCelebration?: boolean;
+  // Custom order for the fixed side nav items above the project list (#9653).
+  // Optional (and intentionally not defaulted) because it was added later: an
+  // absent value means "use the built-in order". Ids missing from the list
+  // (e.g. a nav item added by a later release) are appended after the known
+  // ones, so the list never needs a migration.
+  sideNavItemOrder?: string[];
   isShowProductivityTipLonger?: boolean;
   isTrayShowCurrentCountdown?: boolean;
   isUseCustomWindowTitleBar?: boolean;

@@ -299,6 +299,13 @@
   }
 }
 
+// Drag-reordering the fixed nav items above the project list (#9653).
+// The drop list is the whole nav list, so the global dashed drop-list outline
+// (meant for card sized lists) would frame the entire sidebar - drop it here.
+.nav-list.cdk-drop-list-dragging {
+  outline: none;
+}
+
 // Separator styling
 .nav-separator {
   height: 1px;

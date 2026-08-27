@@ -23,7 +23,9 @@ import {
   selectUnarchivedVisibleProjects,
 } from '../../features/project/store/project.selectors';
 import { toggleHideFromMenu } from '../../features/project/store/project.actions';
+import { moveItemInArray } from '@angular/cdk/drag-drop';
 import { NavConfig, NavItem } from './magic-side-nav.model';
+import { orderNavItemsByIds } from './nav-item-order.util';
 import { PluginBridgeService } from '../../plugins/plugin-bridge.service';
 import { PluginService } from '../../plugins/plugin.service';
 import { lsGetBoolean, lsSetItem } from '../../util/ls-util';
@@ -34,7 +36,7 @@ import {
   MenuTreeViewNode,
 } from '../../features/menu-tree/store/menu-tree.model';
 import { GlobalConfigService } from '../../features/config/global-config.service';
-import { AppFeaturesConfig } from '../../features/config/global-config.model';
+import { AppFeaturesConfig, MiscConfig } from '../../features/config/global-config.model';
 import { SnackService } from '../../core/snack/snack.service';
 import { IS_DONATION_UI_RESTRICTED } from '../../app.constants';
 
@@ -142,19 +144,47 @@ export class MagicNavConfigService {
     });
   }
 
+  /**
+   * The fixed nav items above the project list, in the user's custom order
+   * (#9653). Reordered by dragging them in the side nav and persisted in
+   * `misc.sideNavItemOrder`; an absent/partial stored order always resolves to
+   * a complete list (see orderNavItemsByIds), so no migration is needed.
+   */
+  readonly fixedNavItems = computed<NavItem[]>(() =>
+    orderNavItemsByIds(
+      [
+        ...this._buildWorkContextItems(),
+        ...this._buildMainRoutesItems(),
+        ...this._buildPluginItems(),
+      ],
+      this._configService.misc()?.sideNavItemOrder,
+    ),
+  );
+
+  readonly fixedNavItemIds = computed(
+    () => new Set(this.fixedNavItems().map((item) => item.id)),
+  );
+
+  /** Persist a drag-reorder of the fixed nav items. Indexes are relative to fixedNavItems(). */
+  reorderFixedNavItems(previousIndex: number, currentIndex: number): void {
+    if (previousIndex === currentIndex) {
+      return;
+    }
+    const ids = this.fixedNavItems().map((item) => item.id);
+    moveItemInArray(ids, previousIndex, currentIndex);
+    this._configService.updateSection(
+      'misc',
+      { sideNavItemOrder: ids } as Partial<MiscConfig>,
+      true,
+    );
+  }
+
   // Main navigation configuration
   readonly navConfig = computed<NavConfig>(() => ({
     items: [
-      // Work Context Items
-      ...this._buildWorkContextItems(),
-
-      // Separator
-
-      // Main Routes
-      ...this._buildMainRoutesItems(),
-
-      // Plugin entries
-      ...this._buildPluginItems(),
+      // Work Context Items, main routes and plugin entries, in the user's
+      // custom order (see fixedNavItems)
+      ...this.fixedNavItems(),
 
       // Separator
       { type: 'separator', id: 'sep-2' },
