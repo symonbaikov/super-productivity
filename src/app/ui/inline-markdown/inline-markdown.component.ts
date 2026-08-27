@@ -31,6 +31,7 @@ import {
   setAllChecklistItemsChecked,
   toggleChecklistItemAtIndex,
 } from '../../features/markdown-checklist/checklist-operations';
+import { playChecklistItemDoneSound } from '../../features/markdown-checklist/play-checklist-item-done-sound';
 import { T } from '../../t.const';
 import { fadeInAnimation } from '../animations/fade.ani';
 import { openFullscreenMarkdownDialog } from '../dialog-fullscreen-markdown/open-fullscreen-markdown-dialog';
@@ -698,6 +699,7 @@ export class InlineMarkdownComponent implements OnInit, OnDestroy {
     }
     const next = toggleChecklistItemAtIndex(this._model, checkIndex);
     if (next !== this._model) {
+      playChecklistItemDoneSound(this._globalConfigService.sound(), this._model, next);
       this.modelCopy.set(next);
       this.model = next;
       this.changed.emit(next);

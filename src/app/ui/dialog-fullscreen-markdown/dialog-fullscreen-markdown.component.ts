@@ -28,6 +28,8 @@ import { LS } from '../../core/persistence/storage-keys.const';
 import { T } from '../../t.const';
 import { isSmallScreen } from '../../util/is-small-screen';
 import { DateService } from '../../core/date/date.service';
+import { GlobalConfigService } from '../../features/config/global-config.service';
+import { playChecklistItemDoneSound } from '../../features/markdown-checklist/play-checklist-item-done-sound';
 import {
   handleListKeydown,
   TextTransformResult,
@@ -91,6 +93,7 @@ export class DialogFullscreenMarkdownComponent implements OnInit, AfterViewInit 
   private readonly _clipboardPasteHandler = inject(ClipboardPasteHandlerService);
   private readonly _cdr = inject(ChangeDetectorRef);
   private readonly _dateService = inject(DateService);
+  private readonly _globalConfigService = inject(GlobalConfigService);
   _matDialogRef = inject<MatDialogRef<DialogFullscreenMarkdownComponent>>(MatDialogRef);
   data: {
     content: string;
@@ -399,6 +402,11 @@ export class DialogFullscreenMarkdownComponent implements OnInit, AfterViewInit 
     }
     const next = toggleChecklistItemAtIndex(this.data.content, checkIndex);
     if (next !== this.data.content) {
+      playChecklistItemDoneSound(
+        this._globalConfigService.sound(),
+        this.data.content,
+        next,
+      );
       this.data.content = next;
       // Emit change for auto-save
       this._contentChanges$.next(this.data.content);
