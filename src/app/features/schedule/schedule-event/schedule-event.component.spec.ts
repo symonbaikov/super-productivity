@@ -1,7 +1,7 @@
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { Component, NO_ERRORS_SCHEMA } from '@angular/core';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { DragDropModule } from '@angular/cdk/drag-drop';
+import { CdkDrag, DragDropModule } from '@angular/cdk/drag-drop';
 import { TranslateModule } from '@ngx-translate/core';
 import { ScheduleEventComponent } from './schedule-event.component';
 import { SVEType } from '../schedule.const';
@@ -12,6 +12,7 @@ import { CalendarEventActionsService } from '../../calendar-integration/calendar
 import { DateTimeFormatService } from '../../../core/date-time-format/date-time-format.service';
 import { selectTaskByIdWithSubTaskData } from '../../tasks/store/task.selectors';
 import { TaskRepeatCfg } from '../../task-repeat-cfg/task-repeat-cfg.model';
+import { DRAG_DELAY_FOR_TOUCH } from '../../../app.constants';
 
 const makeCalendarScheduleEvent = (isReferenceCalendar: boolean): ScheduleEvent => ({
   id: 'cal-1',
@@ -100,6 +101,17 @@ describe('ScheduleEventComponent – isReferenceCalendar', () => {
       fixture.detectChanges();
 
       expect(component.isReferenceCalendar()).toBe(false);
+    });
+  });
+
+  describe('touch drag delay (#9675)', () => {
+    it('should require a press-and-hold for touch, but never delay the mouse', () => {
+      fixture.componentRef.setInput('event', makeTaskScheduleEvent());
+      fixture.detectChanges();
+
+      const drag = fixture.debugElement.injector.get(CdkDrag);
+      expect(drag.dragStartDelay).toEqual({ touch: DRAG_DELAY_FOR_TOUCH, mouse: 0 });
+      expect(DRAG_DELAY_FOR_TOUCH).toBeGreaterThan(200);
     });
   });
 

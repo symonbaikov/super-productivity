@@ -42,6 +42,7 @@ import { TaskContextMenuComponent } from '../../tasks/task-context-menu/task-con
 import { DateTimeFormatService } from '../../../core/date-time-format/date-time-format.service';
 import { FH } from '../schedule.const';
 import { CalendarEventActionsService } from '../../calendar-integration/calendar-event-actions.service';
+import { DRAG_DELAY_FOR_TOUCH } from '../../../app.constants';
 
 const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
 
@@ -76,7 +77,7 @@ const FIVE_MINUTES_IN_MS = 5 * 60 * 1000;
   hostDirectives: [
     {
       directive: CdkDrag,
-      inputs: ['cdkDragData', 'cdkDragDisabled', 'cdkDragStartDelay'],
+      inputs: ['cdkDragData', 'cdkDragDisabled'],
       outputs: ['cdkDragStarted', 'cdkDragReleased', 'cdkDragEnded', 'cdkDragMoved'],
     },
   ],
@@ -90,6 +91,14 @@ export class ScheduleEventComponent implements AfterViewInit, OnDestroy {
   private _taskService = inject(TaskService);
   private _calEventActions = inject(CalendarEventActionsService);
   private _ngZone = inject(NgZone);
+  private _cdkDrag = inject(CdkDrag);
+
+  constructor() {
+    // A touch drag must be a deliberate press-and-hold: on a densely filled day almost
+    // every vertical swipe starts on an event, so without the delay the swipe dragged
+    // the event instead of scrolling the grid (#9675). Mouse dragging stays instant.
+    this._cdkDrag.dragStartDelay = { touch: DRAG_DELAY_FOR_TOUCH, mouse: 0 };
+  }
   readonly titleHasLinks = computed(() => {
     const t = this.title();
     return !!t && hasLinkHints(t);

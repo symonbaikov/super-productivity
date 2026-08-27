@@ -43,7 +43,6 @@ const MIN_ROW_HEIGHT_PX = 5;
 const MAX_ROW_HEIGHT_PX = 24;
 const ROW_HEIGHT_STEP_PX = 1;
 const MOBILE_ROW_HEIGHT_FACTOR = DEFAULT_MOBILE_ROW_HEIGHT_PX / DEFAULT_ROW_HEIGHT_PX;
-const TOUCH_DRAG_START_DELAY_MS = 75;
 
 interface ScheduleTaskDataLike {
   id?: string;
@@ -105,11 +104,9 @@ export class ScheduleWeekComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly isShiftNoScheduleMode = this._service.isShiftMode;
 
   FH = FH;
-  protected readonly isTouchActive = isTouchActive;
   SVEType: typeof SVEType = SVEType;
   T: typeof T = T;
   protected readonly isDraggableSE = isDraggableSE;
-  protected readonly touchDragStartDelayMs = TOUCH_DRAG_START_DELAY_MS;
 
   rowsByNr = Array.from({ length: D_HOURS * FH }, (_, index) => index).filter(
     (_, index) => index % FH === 0,
