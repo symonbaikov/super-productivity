@@ -45,6 +45,14 @@ beforePack: ./tools/beforePack.js
 # docs/research/snap-wayland-gpu-fix-research.md §18.
 afterPack: ./tools/afterPack.js
 
+# AppImage delta updates (#9659). electron-builder ships no zsync support, so
+# tools/appimage-update-info.js writes the update-information string into the
+# AppImage's `.upd_info` section (artifactBuildCompleted, i.e. before the
+# artifact is hashed and uploaded) and emits + publishes the matching .zsync
+# (afterAllArtifactBuild). Both are no-ops without `zsyncmake` on PATH.
+artifactBuildCompleted: ./tools/appimage-update-info.js
+afterAllArtifactBuild: ./tools/appimage-update-info.js
+
 win:
   target:
     - target: nsis

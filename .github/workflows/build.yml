@@ -133,6 +133,12 @@ jobs:
       - name: Build Frontend & Electron
         run: npm run build
 
+      # zsyncmake produces the AppImage .zsync control file (#9659). Without it
+      # tools/appimage-update-info.js skips both the .zsync and the embedded
+      # update information, and the AppImage ships non-updatable as before.
+      - name: Install zsync
+        run: sudo apt-get update && sudo apt-get install -y zsync
+
       - name: Build/Release Electron app
         if: startsWith(github.ref, 'refs/tags/v')
         uses: johannesjo/action-electron-builder@9ea9e2d991c97668843d57337848e3e2b1ffab3d # v1
