@@ -57,6 +57,7 @@ tests, or a focused contract.
 | Contract | [conflict-journal-and-review.md](./conflict-journal-and-review.md)             | Disjoint-field auto-merge plus the dormant device-local journal/review capability and its security boundary                                       |
 | Contract | [persisted-model-fields.md](./persisted-model-fields.md)                       | Adding fields to persisted models: optional-plus-default invariant, heal paths, and the latent hydration-validation failure (#8965)               |
 | Contract | [vector-clocks.md](./vector-clocks.md)                                         | Vector-clock implementation, storage/pruning ownership, and history                                                                               |
+| Decision | [multi-url-sync-targets.md](./multi-url-sync-targets.md)                       | Why one provider config addresses one URL: base URL is remote identity, and what a fallback-URL list would have to prove first (#9707)            |
 | Contract | [supersync-encryption-architecture.md](./supersync-encryption-architecture.md) | End-to-end encryption wire format, key lifecycle, integrity boundary, and known limitations                                                       |
 | Mixed    | [operation-log-architecture.md](./operation-log-architecture.md)               | Deep rationale and implementation history plus the normative A.7.11 cross-version/schema-bump contract; use executable owners for volatile detail |
 
