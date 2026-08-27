@@ -9,7 +9,7 @@
     (blur)="onBlur()"
     (keydown)="onKeydown($event)"
     matInput
-    spellcheck="false"
+    [spellcheck]="IS_TOUCH_PRIMARY"
   />
 
   <!-- Visible commit target (accessibility + discoverability + touch tap target).

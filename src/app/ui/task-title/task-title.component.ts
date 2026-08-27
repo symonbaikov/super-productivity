@@ -15,6 +15,7 @@ import {
 import { T } from 'src/app/t.const';
 import { TranslateModule } from '@ngx-translate/core';
 import { IS_ANDROID_WEB_VIEW } from '../../util/is-android-web-view';
+import { IS_TOUCH_PRIMARY } from '../../util/is-mouse-primary';
 import { Log } from '../../core/log';
 import { MentionConfig, MentionModule } from '../mentions';
 import { AsyncPipe } from '@angular/common';
@@ -41,6 +42,11 @@ import { SubmitTrigger } from 'src/app/features/tasks/task.model';
   },
 })
 export class TaskTitleComponent implements OnDestroy {
+  // Spellcheck stays off on desktop (#4040: red squiggles on non-English titles),
+  // but must be on for virtual keyboards (#9750): spellcheck=false also disables
+  // the IME suggestion strip, autocorrect and dictionary on Android/iOS.
+  IS_TOUCH_PRIMARY = IS_TOUCH_PRIMARY;
+
   private static readonly _DEFAULT_SUBMIT_TRIGGER = 'blur' as const;
   T: typeof T = T;
 

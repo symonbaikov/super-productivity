@@ -17,6 +17,7 @@ import { MatInput } from '@angular/material/input';
 import { TranslatePipe } from '@ngx-translate/core';
 import { T } from '../../../t.const';
 import { isTouchActive } from '../../../util/input-intent';
+import { IS_TOUCH_PRIMARY } from '../../../util/is-mouse-primary';
 import { TaskService } from '../task.service';
 
 /**
@@ -35,6 +36,11 @@ export type AddSubtaskInputCloseReason = 'escape' | 'blur' | 'prev' | 'next';
   imports: [FormsModule, MatInput, MatIconButton, MatIcon, TranslatePipe],
 })
 export class AddSubtaskInputComponent {
+  // Spellcheck stays off on desktop (#4040: red squiggles on non-English titles),
+  // but must be on for virtual keyboards (#9750): spellcheck=false also disables
+  // the IME suggestion strip, autocorrect and dictionary on Android/iOS.
+  IS_TOUCH_PRIMARY = IS_TOUCH_PRIMARY;
+
   private readonly _taskService = inject(TaskService);
   private readonly _injector = inject(Injector);
   private _isKeepingOpenAfterSubmit = false;

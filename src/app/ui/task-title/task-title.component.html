@@ -28,7 +28,7 @@
     <textarea
       #textAreaElement
       class="edit-panel"
-      spellcheck="false"
+      [spellcheck]="IS_TOUCH_PRIMARY"
       rows="1"
       tabindex="-1"
       placeholder="{{ placeholder }}"

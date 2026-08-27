@@ -83,6 +83,7 @@ import { DEFAULT_PROJECT_COLOR } from '../../work-context/work-context.const';
 import { Log } from '../../../core/log';
 import { TODAY_TAG } from '../../tag/tag.const';
 import { BodyClass } from '../../../app.constants';
+import { IS_TOUCH_PRIMARY } from '../../../util/is-mouse-primary';
 import { DEFAULT_GLOBAL_CONFIG } from '../../config/default-global-config.const';
 import { Store } from '@ngrx/store';
 import { PlannerActions } from '../../planner/store/planner.actions';
@@ -125,6 +126,11 @@ export interface TaskAddEvent {
   providers: [AddTaskBarStateService, AddTaskBarParserService],
 })
 export class AddTaskBarComponent implements AfterViewInit, OnInit, OnDestroy {
+  // Spellcheck stays off on desktop (#4040: red squiggles on non-English titles),
+  // but must be on for virtual keyboards (#9750): spellcheck=false also disables
+  // the IME suggestion strip, autocorrect and dictionary on Android/iOS.
+  IS_TOUCH_PRIMARY = IS_TOUCH_PRIMARY;
+
   private readonly _taskService = inject(TaskService);
   private readonly _workContextService = inject(WorkContextService);
   private readonly _projectService = inject(ProjectService);

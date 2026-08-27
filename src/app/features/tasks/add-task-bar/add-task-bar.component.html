@@ -53,7 +53,7 @@
           cdkAutosizeMinRows="1"
           cdkAutosizeMaxRows="4"
           rows="1"
-          spellcheck="false"
+          [spellcheck]="IS_TOUCH_PRIMARY"
           (keydown)="onInputKeydown($event)"
           (input)="onInputChange($event)"
           (scroll)="syncHighlightScroll()"
