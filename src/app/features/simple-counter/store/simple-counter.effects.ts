@@ -1,7 +1,15 @@
 import { inject, Injectable } from '@angular/core';
 
 import { Observable } from 'rxjs';
-import { switchMap, tap } from 'rxjs/operators';
+import {
+  concatMap,
+  filter,
+  first,
+  map,
+  switchMap,
+  tap,
+  withLatestFrom,
+} from 'rxjs/operators';
 
 import { createEffect, ofType } from '@ngrx/effects';
 import { LOCAL_ACTIONS } from '../../../util/local-actions.token';
@@ -14,10 +22,14 @@ import { T } from '../../../t.const';
 import { getDbDateStr } from '../../../util/get-db-date-str';
 import { getSimpleCounterStreakDuration } from '../get-simple-counter-streak-duration';
 import {
+  setSimpleCounterCounterForDate,
+  setSimpleCounterCounterToday,
   tickSimpleCounterLocal,
   updateAllSimpleCounters,
 } from './simple-counter.actions';
 import { selectSimpleCounterById } from './simple-counter.reducer';
+import { GlobalConfigService } from '../../config/global-config.service';
+import { playDoneSound } from '../../tasks/util/play-done-sound';
 
 @Injectable()
 export class SimpleCounterEffects {
@@ -26,6 +38,7 @@ export class SimpleCounterEffects {
   private _snackService = inject(SnackService);
   private _translateService = inject(TranslateService);
   private readonly _confettiService = inject(ConfettiService);
+  private _globalConfigService = inject(GlobalConfigService);
 
   successFullCountersMap: { [key: string]: boolean } = {};
 
@@ -93,6 +106,41 @@ export class SimpleCounterEffects {
             // }
           }
         }),
+      ),
+    { dispatch: false },
+  );
+
+  /**
+   * Same completion ding as a done task (#9654), reusing the shared
+   * `playDoneSound` helper and the existing `sound.doneSound` setting — no new
+   * config surface. Deliberately silent for plain tally counters: only habits
+   * with a goal (`isTrackStreaks`) can be "completed".
+   *
+   * `_actions$` is LOCAL_ACTIONS, so a habit ticked on another device replays
+   * its op here without beeping.
+   */
+  habitDoneSound$: Observable<unknown> = createEffect(
+    () =>
+      this._actions$.pipe(
+        ofType(setSimpleCounterCounterToday, setSimpleCounterCounterForDate),
+        // Only the store's goal config is needed; `newVal` comes from the action
+        // because the reducer has already written it.
+        concatMap(({ id, newVal }) =>
+          this._store$.pipe(
+            select(selectSimpleCounterById, { id }),
+            first(),
+            map((sc) => ({ sc, newVal })),
+          ),
+        ),
+        // Equality, not `>=`, is what makes this the *moment* of completion: a
+        // further click overshoots the goal and stays quiet, as does the 5-min
+        // stopwatch value sync.
+        filter(
+          ({ sc, newVal }) => !!sc?.isTrackStreaks && newVal === (sc.streakMinValue || 1),
+        ),
+        withLatestFrom(this._globalConfigService.sound$),
+        filter(([, soundCfg]) => !!soundCfg.doneSound),
+        tap(([, soundCfg]) => playDoneSound(soundCfg)),
       ),
     { dispatch: false },
   );
