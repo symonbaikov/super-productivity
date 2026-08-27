@@ -158,5 +158,13 @@
     "author": "BigWebstas",
     "authorUrl": "https://github.com/BigWebstas",
     "stars": 0
+  },
+  {
+    "name": "Super Productivity for Omarchy",
+    "shortDescription": "External Omarchy Shell widget (not an in-app plugin) to view and control tasks from the Linux desktop top bar. Requires the desktop app with its local REST API enabled and Python 3.10+.",
+    "url": "https://github.com/PatrickFanella/omarchy-superproductivity",
+    "author": "PatrickFanella",
+    "authorUrl": "https://github.com/PatrickFanella",
+    "stars": 2
   }
 ]
