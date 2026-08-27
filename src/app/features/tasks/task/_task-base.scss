@@ -219,6 +219,13 @@
   flex-grow: 1;
   flex-shrink: 1;
   flex-basis: 70%;
+  // as a flex item this defaults to min-width: auto, i.e. it refuses to shrink
+  // below its min-content width. The nowrap parent-task breadcrumb shown above a
+  // subtask makes that min-content huge, so on narrow screens the row overflowed
+  // and justify-content: center cut the text off at both ends instead of
+  // ellipsizing it (#9748). The inner .title already has overflow: hidden and can
+  // clip once it is allowed to.
+  min-width: 0;
   // we cannot do this since this cuts of the box shadow of the task edit
   //overflow: hidden;
   -webkit-tap-highlight-color: transparent;
